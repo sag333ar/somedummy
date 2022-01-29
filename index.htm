@@ -8,6 +8,7 @@
 </head>
 <body>
   <script src="https://unpkg.com/javalon/bin/javalon.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 		Some Dummy HTML page with test data.
 		<script>
 			async function decrypt(thisData, avalonKey) {
@@ -18,8 +19,27 @@
 						return console.log("error is " + e)
 					}
 					console.log('decryptedAES is ' + decryptedAES);
-					window.webkit.messageHandlers.message.postMessage(JSON.stringify({decryptedAES: decryptedAES}));
-					return decryptedAES;
+					// window.webkit.messageHandlers.message.postMessage(JSON.stringify({decryptedAES: decryptedAES}));
+					// return decryptedAES;
+
+					axios.post('/logincb',encrypted_message,{ headers: { 'content-type': 'text/plain' }})
+					.then((cbResponse) => {
+        		if (cbResponse.data.error != null) {
+							window.webkit.messageHandlers.message.postMessage(JSON.stringify({error: cbResponse.data.error}));
+							return console.log("error is " + cbResponse.data.error);
+        		} else {
+							console.log('cbResponse is ' + cbResponse.data);
+							window.webkit.messageHandlers.message.postMessage(JSON.stringify({token: cbResponse.data.access_token}));
+						}
+    			}).catch((err) => {
+        		if (err.response.data.error) {
+							window.webkit.messageHandlers.message.postMessage(JSON.stringify({error: err.response.data.error}));
+							return console.log("error is " + err.response.data.error);
+						} else {
+            	window.webkit.messageHandlers.message.postMessage(JSON.stringify({error: err.message}));
+							return console.log("error is " + err.message);
+						}
+    			});
 				});
 			}
 		</script>
