@@ -22,7 +22,7 @@
 					// window.webkit.messageHandlers.message.postMessage(JSON.stringify({decryptedAES: decryptedAES}));
 					// return decryptedAES;
 
-					axios.post('/logincb',encrypted_message,{ headers: { 'content-type': 'text/plain' }})
+					axios.post('/logincb',decryptedAES,{ headers: { 'content-type': 'text/plain' }})
 					.then((cbResponse) => {
         		if (cbResponse.data.error != null) {
 							window.webkit.messageHandlers.message.postMessage(JSON.stringify({error: cbResponse.data.error}));
