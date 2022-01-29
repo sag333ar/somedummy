@@ -14,11 +14,13 @@
 				javalon.init({api: 'https://avalon.oneloved.tube'});
 				javalon.decrypt(avalonKey,thisData,(e,decryptedAES) => {
 					if (e) {
-						window.webkit.messageHandlers.message.postMessage("error - " + e);
+						window.webkit.messageHandlers.message.postMessage(JSON.stringify({
+							type: 'error',
+							message: e.message
+						}));
 						return console.log("error is " + e)
 					}
-					console.log("Decrypetd is " + decryptedAES)
-					window.webkit.messageHandlers.message.postMessage(decryptedAES);
+					window.webkit.messageHandlers.message.postMessage(JSON.stringify({decryptedAES: decryptedAES}));
 					return decryptedAES;
 				});
 			}
