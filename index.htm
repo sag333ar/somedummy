@@ -8,15 +8,17 @@
 </head>
 <body>
   <script src="https://unpkg.com/javalon/bin/javalon.min.js"></script>
-		YO YO
+		Some Dummy HTML page with test data.
 		<script>
 			async function decrypt(thisData, avalonKey) {
 				javalon.init({api: 'https://avalon.oneloved.tube'});
 				javalon.decrypt(avalonKey,thisData,(e,decryptedAES) => {
 					if (e) {
+						window.webkit.messageHandlers.message.postMessage("error - " + e);
 						return console.log("error is " + e)
 					}
 					console.log("Decrypetd is " + decryptedAES)
+					window.webkit.messageHandlers.message.postMessage(decryptedAES);
 					return decryptedAES;
 				});
 			}
