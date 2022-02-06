@@ -9,6 +9,8 @@
 <body>
   <script src="https://unpkg.com/javalon/bin/javalon.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/tus-js-client@latest/dist/tus.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.0/socket.io.js"></script>
 		Some Dummy HTML page with test data.
 		<script>
 			async function decrypt(thisData, avalonKey) {
@@ -41,6 +43,62 @@
 						}
     			});
 				});
+			}
+		</script>
+		<script>
+			function uploadFile(fileurl, token) {
+						// Socket IO connection for upload results
+					let uplStat = io.connect('https://uploader.oneloved.tube/uploadStat');
+
+						// Begin event for HLS video upload processing. Emitted at the start of a processing step (e.g. begin encoding).
+						uplStat.on('begin',(s) => {
+								console.log(s);
+						})
+
+						// Progress event for HLS video upload processing (FFmpeg encoding and IPFS add)
+						uplStat.on('progress',(p) => {
+								console.log(p);
+						})
+
+						// Listen for upload results
+						uplStat.on('result',(r) => {
+								console.log(r);
+						})
+
+						// tus resumable file upload
+						let videoUpload = new tus.Upload(fileurl, {
+								endpoint: 'https://tusd.oneloved.tube/files',
+								retryDelays: [0,3000,5000,10000,20000],
+								parallelUploads: 10, // number of upload threads
+								metadata: {
+										access_token: token,
+										keychain: 'true',
+										type: 'videos'
+								},
+								onError: (e) => {
+										console.log('tus error',e)
+								},
+								onProgress: (bu,bt) => {
+										let progressPercent = Math.round((bu / bt) * 100)
+										console.log('Progress: ' + progressPercent + '%')
+								},
+								onSuccess: () => {
+										let url = videoUpload.url.toString().split('/')
+										console.log("Upload ID: " + url[url.length - 1]) // ID of upload
+										uplStat.emit('registerid',{
+												id: url[url.length - 1],
+												type: 'videos',
+												access_token: token,
+												keychain: 'true'
+										})
+								}
+						})
+
+						videoUpload.findPreviousUploads().then((p) => {
+								if (p.length > 0)
+										videoUpload.resumeFromPreviousUpload(p[0])
+								videoUpload.start()
+						})
 			}
 		</script>
 	</body>
