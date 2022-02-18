@@ -21,93 +21,30 @@
 						return console.log("error is " + e)
 					}
 					console.log('decryptedAES is ' + decryptedAES);
-					// window.webkit.messageHandlers.message.postMessage(JSON.stringify({decryptedAES: decryptedAES}));
+					window.webkit.messageHandlers.message.postMessage(JSON.stringify({decryptedAES: decryptedAES}));
 					// return decryptedAES;
 
-					axios.post('https://uploader.oneloved.tube/logincb',decryptedAES,{ headers: { 'content-type': 'text/plain' }})
-					.then((cbResponse) => {
-        		if (cbResponse.data.error != null) {
-							window.webkit.messageHandlers.message.postMessage(JSON.stringify({error: cbResponse.data.error}));
-							return console.log("error is " + cbResponse.data.error);
-        		} else {
-							console.log('cbResponse is ' + cbResponse.data);
-							window.webkit.messageHandlers.message.postMessage(JSON.stringify({token: cbResponse.data.access_token}));
-						}
-    			}).catch((err) => {
-        		if (err.response.data.error) {
-							window.webkit.messageHandlers.message.postMessage(JSON.stringify({error: err.response.data.error}));
-							return console.log("error is " + err.response.data.error);
-						} else {
-            	window.webkit.messageHandlers.message.postMessage(JSON.stringify({error: err.message}));
-							return console.log("error is " + err.message);
-						}
-    			});
+					// axios.post('https://uploader.oneloved.tube/logincb',decryptedAES,{ headers: { 'content-type': 'text/plain' }})
+					// .then((cbResponse) => {
+        	// 	if (cbResponse.data.error != null) {
+					// 		window.webkit.messageHandlers.message.postMessage(JSON.stringify({error: cbResponse.data.error}));
+					// 		return console.log("error is " + cbResponse.data.error);
+        	// 	} else {
+					// 		console.log('cbResponse is ' + cbResponse.data);
+					// 		window.webkit.messageHandlers.message.postMessage(JSON.stringify({token: cbResponse.data.access_token}));
+					// 	}
+    			// }).catch((err) => {
+        	// 	if (err.response.data.error) {
+					// 		window.webkit.messageHandlers.message.postMessage(JSON.stringify({error: err.response.data.error}));
+					// 		return console.log("error is " + err.response.data.error);
+					// 	} else {
+          //   	window.webkit.messageHandlers.message.postMessage(JSON.stringify({error: err.message}));
+					// 		return console.log("error is " + err.message);
+					// 	}
+    			// });
 				});
 			}
 		</script>
-		<script>
-			function uploadFile(fileurl, token) {
-						// Socket IO connection for upload results
-					let uplStat = io.connect('https://uploader.oneloved.tube/uploadStat');
-
-						// Begin event for HLS video upload processing. Emitted at the start of a processing step (e.g. begin encoding).
-						uplStat.on('begin',(s) => {
-								console.log(s);
-						})
-
-						// Progress event for HLS video upload processing (FFmpeg encoding and IPFS add)
-						uplStat.on('progress',(p) => {
-								console.log(p);
-						})
-
-						// Listen for upload results
-						uplStat.on('result',(r) => {
-								console.log(r);
-						})
-
-						// tus resumable file upload
-						let videoUpload = new tus.Upload(fileurl, {
-								endpoint: 'https://tusd.oneloved.tube/files',
-								retryDelays: [0,3000,5000,10000,20000],
-								parallelUploads: 10, // number of upload threads
-								metadata: {
-										access_token: token,
-										keychain: 'true',
-										type: 'videos'
-								},
-								onError: (e) => {
-										console.log('tus error',e)
-								},
-								onProgress: (bu,bt) => {
-										let progressPercent = Math.round((bu / bt) * 100)
-										console.log('Progress: ' + progressPercent + '%')
-								},
-								onSuccess: () => {
-										let url = videoUpload.url.toString().split('/')
-										console.log("Upload ID: " + url[url.length - 1]) // ID of upload
-										uplStat.emit('registerid',{
-												id: url[url.length - 1],
-												type: 'videos',
-												access_token: token,
-												keychain: 'true'
-										})
-								}
-						})
-
-						videoUpload.findPreviousUploads().then((p) => {
-								if (p.length > 0)
-										videoUpload.resumeFromPreviousUpload(p[0])
-								videoUpload.start()
-						})
-			}
-		</script>
-		<form>
-			<label>
-				<button id="upload-button" type="button">Upload Movie
-					<input id="image-selector" name="document_front" type="file" accept="video/mp4"  />
-				</button>
-			</label>
-		</form>
 	</body>
 </body>
 </html>
